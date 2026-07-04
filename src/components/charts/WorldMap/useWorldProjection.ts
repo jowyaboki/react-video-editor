@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import * as d3 from "d3-geo";
+import { interpolate as interpolateRemotion, Easing } from "remotion";
 
 interface UseWorldProjectionProps {
   width: number;
@@ -19,15 +20,16 @@ export const useWorldProjection = ({
   focusPoint = [0, 0],
 }: UseWorldProjectionProps) => {
   const projection = useMemo(() => {
-    // Dynamic rotation calculation
     let rotation: [number, number, number] = [0, 0, 0];
 
     if (rotationMode === "continuous") {
       const progress = currentFrame / durationInFrames;
-      rotation = [progress * 360, -15, 0]; // Continuous spin with slight tilt
+      rotation = [progress * 360, -15, 0];
     } else if (rotationMode === "focus") {
-      // For Remotion, we ensure this is deterministic based on currentFrame
+      // Deterministic rotation based on focus point
       rotation = [-focusPoint[0], -focusPoint[1], 0];
+    } else {
+      rotation = [0, -15, 0];
     }
 
     return d3

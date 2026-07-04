@@ -13,18 +13,33 @@ export interface UploadResult extends PresignedUploadConfig {}
  * Returns { presignedUrl, url, fileName, filePath, contentType }.
  */
 export async function getPresignedConfig(fileName: string): Promise<PresignedUploadConfig> {
-  const response = await fetch("/api/uploads/presign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fileNames: [fileName] }),
-  });
+  try {
+    const response = await fetch("/api/uploads/presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileNames: [fileName] }),
+    });
 
-  if (!response.ok) {
-    throw new Error("Failed to get presigned URL");
+    if (!response.ok) {
+      let errorMessage = "Failed to get presigned URL";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.details || errorData.error || errorMessage;
+      } catch {
+        // Fallback to default message
+      }
+      throw new Error(errorMessage);
+    }
+
+    const { uploads } = await response.json();
+    if (!uploads || uploads.length === 0) {
+      throw new Error("Presign response contained no upload configs");
+    }
+    return uploads[0] as PresignedUploadConfig;
+  } catch (error) {
+    console.error("[Upload] Presign request failed:", error);
+    throw error;
   }
-
-  const { uploads } = await response.json();
-  return uploads[0] as PresignedUploadConfig;
 }
 
 /**

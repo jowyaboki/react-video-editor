@@ -8,16 +8,34 @@ interface PresignRequest {
   fileNames: string[];
 }
 
-const r2 = new R2StorageService({
-  bucketName: config.r2.bucket,
-  accessKeyId: config.r2.accessKeyId,
-  secretAccessKey: config.r2.secretAccessKey,
-  accountId: config.r2.accountId,
-  cdn: config.r2.cdn,
-});
-
 export async function POST(request: NextRequest) {
   try {
+    // Validate configuration
+    const missingVars = [];
+    if (!config.r2.bucket) missingVars.push("R2_BUCKET_NAME");
+    if (!config.r2.accessKeyId) missingVars.push("R2_ACCESS_KEY_ID");
+    if (!config.r2.secretAccessKey) missingVars.push("R2_SECRET_ACCESS_KEY");
+    if (!config.r2.accountId) missingVars.push("R2_ACCOUNT_ID");
+    if (!config.r2.cdn) missingVars.push("R2_PUBLIC_DOMAIN");
+
+    if (missingVars.length > 0) {
+      return NextResponse.json(
+        {
+          error: "Storage configuration missing",
+          details: `The following environment variables are missing: ${missingVars.join(", ")}`
+        },
+        { status: 500 },
+      );
+    }
+
+    const r2 = new R2StorageService({
+      bucketName: config.r2.bucket,
+      accessKeyId: config.r2.accessKeyId,
+      secretAccessKey: config.r2.secretAccessKey,
+      accountId: config.r2.accountId,
+      cdn: config.r2.cdn,
+    });
+
     const body: PresignRequest = await request.json();
     const { userId = "mockuser", fileNames } = body;
 

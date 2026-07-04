@@ -23,6 +23,7 @@ interface AnimatedWorldMapProps {
   currentFrame: number;
   durationInFrames: number;
   theme?: Partial<WorldMapTheme>;
+  rotationMode?: "continuous" | "focus" | "static";
 }
 
 const DEFAULT_THEME: WorldMapTheme = {
@@ -45,6 +46,7 @@ export const AnimatedWorldMap: React.FC<AnimatedWorldMapProps> = ({
   currentFrame,
   durationInFrames,
   theme = {},
+  rotationMode = "continuous",
 }) => {
   const activeTheme = { ...DEFAULT_THEME, ...theme };
 
@@ -54,15 +56,7 @@ export const AnimatedWorldMap: React.FC<AnimatedWorldMapProps> = ({
       .features as GeoFeature[];
   }, []);
 
-  // 2. Projection Logic
-  const { projection, path, graticule } = useWorldProjection({
-    width,
-    height,
-    currentFrame,
-    durationInFrames,
-  });
-
-  // 3. Markers Logic
+  // 2. Markers Logic (Pre-calculate positions)
   const markers = useMemo(() => {
     return data.map((d) => {
       const coords = COUNTRY_COORDS[d.countryCode] || [0, 0];
@@ -77,9 +71,19 @@ export const AnimatedWorldMap: React.FC<AnimatedWorldMapProps> = ({
     }) as Marker[];
   }, [data]);
 
-  // 4. Automatic Highlight Logic
+  // 3. Automatic Highlight Logic
   const activeMarkerIndex = Math.floor((currentFrame / durationInFrames) * markers.length);
   const activeMarker = markers[activeMarkerIndex % markers.length];
+
+  // 4. Projection Logic
+  const { projection, path, graticule } = useWorldProjection({
+    width,
+    height,
+    currentFrame,
+    durationInFrames,
+    rotationMode,
+    focusPoint: activeMarker ? [activeMarker.lng, activeMarker.lat] : [0, 0],
+  });
 
   return (
     <svg
@@ -89,7 +93,7 @@ export const AnimatedWorldMap: React.FC<AnimatedWorldMapProps> = ({
       className="animated-world-map"
       style={{ background: "#020617" }}
     >
-      {/* 1. Background / Environment */}
+      {/* 1. Background Environment */}
       <Stars width={width} height={height} currentFrame={currentFrame} />
 
       {/* 2. Atmosphere Glow */}
@@ -149,7 +153,7 @@ export const AnimatedWorldMap: React.FC<AnimatedWorldMapProps> = ({
           y={projection([activeMarker.lng, activeMarker.lat])?.[1] || 0}
           title={activeMarker.label}
           value={activeMarker.value}
-          label="Points"
+          label="Value"
           theme={activeTheme}
           visible={true}
         />
