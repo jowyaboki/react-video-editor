@@ -1,9 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CanvasSize } from "@/types/editor";
+import { CanvasSize, CanvasMode } from "@/types/editor";
 
 interface ProjectState {
   canvasSize: CanvasSize;
+  canvasMode: CanvasMode;
   aspectRatio: string;
   fps: number;
   initialStudioJSON: any | null;
@@ -13,7 +14,7 @@ interface ProjectState {
   spaceId: string | null;
   resyncCounter: number;
   setProjectName: (name: string) => void;
-  setCanvasSize: (size: CanvasSize, aspectRatio: string) => void;
+  setCanvasSize: (size: CanvasSize, aspectRatio: string, canvasMode?: CanvasMode) => void;
   setFps: (fps: number) => void;
   setInitialStudioJSON: (json: any | null, version?: number) => void;
   setProjectId: (projectId: string | null) => void;
@@ -31,6 +32,7 @@ const DEFAULT_STATE = {
   canvasSize: DEFAULT_CANVAS_SIZE,
   aspectRatio: DEFAULT_ASPECT_RATIO,
   fps: DEFAULT_FPS,
+  canvasMode: "preset" as CanvasMode,
   initialStudioJSON: null,
   initialVersion: 0,
   projectName: "Untitled video",
@@ -44,7 +46,7 @@ export const useProjectStore = create<ProjectState>()(
     (set) => ({
       ...DEFAULT_STATE,
       setProjectName: (projectName) => set({ projectName }),
-      setCanvasSize: (canvasSize, aspectRatio) => set({ canvasSize, aspectRatio }),
+      setCanvasSize: (canvasSize, aspectRatio, canvasMode = "custom") => set({ canvasSize, aspectRatio, canvasMode }),
       setFps: (fps) => set({ fps }),
       setInitialStudioJSON: (initialStudioJSON, initialVersion = 0) =>
         set({ initialStudioJSON, initialVersion }),
@@ -61,6 +63,7 @@ export const useProjectStore = create<ProjectState>()(
         canvasSize: state.canvasSize,
         aspectRatio: state.aspectRatio,
         fps: state.fps,
+        canvasMode: state.canvasMode,
       }),
       migrate: (persistedState: any, version: number) => {
         return persistedState as ProjectState;

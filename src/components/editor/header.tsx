@@ -6,6 +6,7 @@ import { usePanelStore } from "@/stores/panel-store";
 import { Button } from "@/components/ui/button";
 import { ExportPopover } from "./export-popover";
 import { TaskbarPopover } from "./taskbar-popover";
+import { CanvasRatioSelector } from "./canvas-ratio-selector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -216,6 +217,9 @@ export default function Header() {
         {/* Right Column: Aspect Ratio and Export Button */}
         <div className="flex items-center justify-end gap-2">
           {/* Taskbar Button */}
+          {/* Aspect Ratio Selector */}
+          <CanvasRatioSelector />
+
           <TaskbarPopover>
             <RiArchiveDrawerLine className="size-4" />
             <span className="sr-only">Tasks</span>

@@ -52,6 +52,9 @@ export function CanvasPanel({ onReady }: CanvasPanelProps) {
   useEffect(() => {
     if (studioRef.current) {
       studioRef.current.setSize(canvasSize.width, canvasSize.height);
+      if ((studioRef.current as any).updateArtboardLayout) {
+        (studioRef.current as any).updateArtboardLayout();
+      }
     }
     core.execute({
       id: nanoid(),
